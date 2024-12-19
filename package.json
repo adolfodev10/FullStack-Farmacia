@@ -4,7 +4,7 @@
   "description": "Backend do Projecto com o Watela",
   "main": "src/server.ts",
   "scripts": {
-    "start": "concurrently \"npm run start:server\" \"npm run dev\"",
+    "start": "node dist/server.js",
     "start:server": "ts-node src/server.ts",
     "dev": "ts-node-dev src/server.ts",
     "build": "tsc",
