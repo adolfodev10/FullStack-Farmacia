@@ -10,6 +10,8 @@ import { StockPage } from "@/pages/Auth/stock";
 import { ProductRegisterPage } from "@/pages/Auth/registerProduct";
 import List from "@/pages/Auth/list";
 import { Vendas } from "@/pages/Auth/venda";
+import { GerentePage } from "@/pages/Auth/gerente";
+import { Dashboard } from "@/pages/dashboard";
 
 
 export const AuthRoutes: IRouteProps = {
@@ -48,6 +50,11 @@ export const AuthRoutes: IRouteProps = {
             visibility: "auth",
         },
         {
+            path: "/auth/dashboard",
+            element:Dashboard,
+            visibility:"auth",
+        },
+        {
             path: "/auth/stock",
             element: StockPage,
             visibility: "auth"
@@ -61,6 +68,11 @@ export const AuthRoutes: IRouteProps = {
             path: "/auth/registerProduct",
             element: ProductRegisterPage,
             visibility: "auth"
+        },
+        {
+            path:"/auth/gerente",
+            element:GerentePage,
+            visibility:"auth"
         },
         {
             path: "/auth/list",

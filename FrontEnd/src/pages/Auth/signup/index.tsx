@@ -22,7 +22,7 @@ export const SignUp = () => {
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>();
   const [users, setUsers] = useState<User[]>([]);
   const [isUserExisting, setIsUserExisting] = useState(false);
-  const navigate = useNavigate();  // Importar e usar o hook useNavigate
+  const navigate = useNavigate();  
 
   const fetchUsers = async () => {
     try {
@@ -48,7 +48,7 @@ export const SignUp = () => {
       reset();
       await fetchUsers();
       setIsUserExisting(false);
-      navigate("/auth/login");  // Redirecionar após o registro
+      navigate("/auth/login"); 
     } catch (error) {
       console.error('Erro ao cadastrar', error);
     }
@@ -56,15 +56,15 @@ export const SignUp = () => {
 
   return (
     <div
-      className="w-full flex flex-col items-center p-6 md:p-12 bg-cover bg-center"
+      className="w-full min-h-screen flex flex-col md:flex-row justify-center items-center p-6 md:p-12 bg-cover bg-center"
       style={{ backgroundImage: "url('../../src/assets/fundo.svg')" }}
     >
       <div className="flex flex-col md:flex-row justify-around m-auto w-full max-w-4xl">
 
-        {/* Conteúdo que deve ficar no topo */}
+
         <div className="p-4 items-center w-full md:w-1/2 mt-8 md:mt-0 md:order-1">
           <CitationFarma />
-          <p className="mb-8 text-gray-400">
+          <p className="mb-8 text-gray-400 text-center md:text-left">
             Caso já tenhas criado uma conta na nossa plataforma, averigue ou então faça login na plataforma pressionando o botão abaixo!
           </p>
           <Link to="/auth/login" className="text-[14px] m-auto">
@@ -75,7 +75,7 @@ export const SignUp = () => {
         </div>
 
         {/* Conteúdo do formulário que deve ficar na parte inferior */}
-        <div className="items-center p-5 bg-gray-300 rounded-md w-full md:w-1/2 md:order-2">
+        <div className="items-center p-5 bg-gray-300 rounded-md w-full md:w-1/2">
           <div className="font-sans">
             <div className="p-[10px] items-center">
               <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">

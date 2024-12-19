@@ -5,8 +5,9 @@ import { Begin } from "./addProdut";
 
 type Product = {
     id:number;
-    nameProduct:string;
+    name:string;
     price:number;
+    quantity:number;
     description:string;
     date:string;
 }
@@ -27,7 +28,7 @@ export const BeginPage = () => {
     }, []);
     return (
         <>
-            <BeginMenu />
+            <BeginMenu  />
                 <Begin products={products} onUpdate={fetchProducts} />
         </>
     );

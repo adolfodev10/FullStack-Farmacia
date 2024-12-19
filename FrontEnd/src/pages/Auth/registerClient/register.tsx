@@ -144,13 +144,6 @@ export const Register = ({ clientes, onUpdate }: ListClientProps) => {
                                 >
                                     Eliminar
                                 </button>
-                                <button
-                                    type='button'
-                                    className='bg-blue-500 text-white p-1 rounded-md text-sm'
-                                    onClick={() => setIsClientModalOpen(true)}
-                                >
-                                    Ver Fatura
-                                </button>
                             </td>
                         </tr>
                     ))}

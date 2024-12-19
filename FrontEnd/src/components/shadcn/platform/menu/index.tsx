@@ -1,10 +1,12 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../../context/UserContext';
+import {Menu, X} from "lucide-react";
 
 export const BeginMenu = () => {
     const { userName } = useUser();
     const navigate = useNavigate()
+    const [isMenuOpen, setIsMenuOpen] = useState(false)
 
     useEffect(() => {
         const handleScroll = (event: MouseEvent) => {
@@ -30,22 +32,46 @@ export const BeginMenu = () => {
         };
     }, []);
 
+    const buttons = [
+        { label: "Vender", route: "/auth/begin", color: "green" },
+        { label: "Produtos", route: "/auth/registerProduct", color: "violet" },
+        { label: "Clientes", route: "/auth/RegisterClient", color: "cyan" },
+        { label: "Vendidos", route: "/auth/venda", color: "zinc" },
+        { label: "Estoque", route: "/auth/stock", color: "blue" },
+        { label: "Sair", route: "/auth/login", color: "red" },
+      ];
+
     return (
         <header className="bg-transparent h-20 relative px-5 font-sans flex items-center justify-between w-full">
             <h1>
                 {userName && (
-                    '' ? <span className="text-green-700">{`Bem-vindo, ${userName}`}</span> : 'Vender Produto'
+                    <span className="text-green-700">{`Bem-vindo, ${userName}`}</span>
                 )}
             </h1>
-            <div className="flex gap-5 ml-[-300px]">
-                <button onClick={() => navigate('/auth/registerProduct')} className='w-full text-center  md:w-[210px] items-center justify-center flex hover:bg-violet-700 transition-all p-2 m-auto bg-violet-600 rounded-md text-white' >Cadastrar produtos</button>
-                <button onClick={() => navigate('/auth/RegisterClient')} className='w-full md:w-[160px] text-center items-center justify-center flex hover:bg-cyan-700 transition-all p-2 m-auto bg-cyan-600 rounded-md text-white' >Todos Clientes</button>
-                <button onClick={() => navigate('/auth/venda')} className='w-full text-center  md:w-[160px] items-center justify-center flex hover:bg-zinc-700 transition-all p-2 m-auto bg-zinc-600 rounded-md text-white' >Vendidos</button>
-                <button onClick={() => navigate('/auth/stock')} className='w-full text-center  md:w-[160px] items-center justify-center flex hover:bg-blue-700 transition-all p-2 m-auto bg-blue-600 rounded-md text-white' >Ver Estoque</button>
-                <button onClick={() => navigate('/auth/login')} className="w-1/5  hover:bg-red-800 transition-all p-2 m-auto bg-red-700 rounded-md text-white">
-                    Sair
+            <div className='md:hidden'>
+                <button
+                onClick={()=>setIsMenuOpen(!isMenuOpen)}
+                className='p-2 rounded-md text-gray-700 hover:bg-gray-700 hover:text-white transition-all'
+                >
+                    {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
                 </button>
             </div>
+            <nav className={`${
+                isMenuOpen ? "flex" : "hidden" 
+            } absolute top-20 left-0 w-full md:max-w-screen-sm mb-4 bg-white flex-col md:flex md:flex-row md:static md:bg-transparent`}
+            >
+                {buttons.map((button, index)=>(
+                    <button 
+                    key={index}
+                    onClick={() => {
+                        navigate(button.route)
+                        setIsMenuOpen(false)
+                    }} 
+                    className={`w-72 md:w-[90px] text-center items-center justify-center flex hover:bg-${button.color}-700 transition-all py-3 mt-2 m-auto bg-${button.color}-600 rounded-md text-white`}>
+                        {button.label}
+                    </button>
+                ))}
+            </nav>
         </header>
     );
 };

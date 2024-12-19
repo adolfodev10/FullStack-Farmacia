@@ -1,56 +1,103 @@
+import { MenuStock } from "@/components/shadcn/menu-stock";
 import axios from "axios";
+import { ArrowDownCircleIcon, ArrowUpCircleIcon, DollarSignIcon } from "lucide-react";
 import { useEffect, useState } from "react";
+import { RegisterStock } from "./register";
+import { useForm } from "react-hook-form";
 
 type Product = {
     id: number;
     name: string;
     price: number;
+    quantity: number;
+    description: string;
+};
+
+type Venda = {
+    id: number;
+    nameProduct: string;
+    price: number;
+    description: string;
+    date: string;
+};
+
+type FormData = {
+    name: string;
+    price: number;
+    quantity: number;
     description: string;
 };
 
 export const StockPage = () => {
     const [products, setProducts] = useState<Product[]>([]);
-    const [newProductName, setNewProductName] = useState('');
-    const [newProductPrice, setNewProductPrice] = useState(0);
-    const [newProductDescription, setNewProductDescription] = useState('');
-    const [newProductQuantity, setNewProductQuantity] = useState(0);
-    const [totalQuantity, setTotalQuantity] = useState(0);
-    const [productCount, setProductCount] = useState(0);
-    const [valueTotal, setValueTotal] = useState(0);
+    const [, setVenda] = useState<Venda[]>([]);
 
-    useEffect(() => {
-        axios.get('http://localhost:5000/api/stock')
-            .then(response => {
-                setProducts(response.data);
-                calculateTotals(response.data);
-            })
-            .catch(error => console.error('Erro ao buscar produtos', error));
-    }, []);
+    const { register, handleSubmit, reset } = useForm<FormData>();
+    const [totalValue, setTotalValue] = useState(0); // Total de entradas (valor em KZ)
+    const [totalSaidaValue, setTotalSaidaValue] = useState(0); // Total de saídas (valor em KZ)
+    const [totalOverall, setTotalOverall] = useState(0); // Total geral (valor de entradas - saídas)
 
-    const calculateTotals = (products: Product[]) => {
-        const TotalDeEntrada = products.reduce((acc) => acc + 1, 0);
-        const productCount = products.length;
-        const valueTotal = products.reduce((acc, product) => acc + (product.price), 0);
-
-        setTotalQuantity(TotalDeEntrada);
-        setProductCount(productCount);
-        setValueTotal(valueTotal);
+    // Função para buscar produtos no backend
+    const fetchProducts = async () => {
+        try {
+            const response = await axios.get("http://localhost:5000/api/stock");
+            setProducts(response.data);
+            calculateTotals(response.data);
+        } catch (error) {
+            console.error('Erro ao buscar produtos', error);
+        }
     };
 
-    const handleAddOrUpdateProduct = async () => {
-        const product = products.find(p => p.name === newProductName);
-        if (product) {
-            // Atualizar produto existente
-            const newTotalQuantity = totalQuantity + 1;
-            const newTotalPrice = product.price + (newProductPrice * newProductQuantity); // Atualiza o preço
+    // Função para buscar vendas no backend
+    const fetchVendas = async () => {
+        try {
+            const response = await axios.get('http://localhost:5000/api/venda');
+            setVenda(response.data);
+            calculateSaidaTotals(response.data);
+            calculateTotalEntrada(response.data)
+        } catch (error) {
+            console.error('Erro ao buscar vendas', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchProducts();
+        fetchVendas();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // Calcula o total de saídas (vendas)
+    const calculateSaidaTotals = (vendas: Venda[]) => {
+        const totalSaida = vendas.reduce((acc, venda) => acc + venda.price, 0);
+        setTotalSaidaValue(totalSaida);
+    };
+
+    const calculateTotalEntrada = (products: Product[]) => {
+        return products.reduce((acc, product) => acc + (product.price * product.quantity), 0);
+    };
+
+    // Calcula os totais de entrada e saldo geral
+    const calculateTotals = (products: Product[]) => {
+        const totalEntrada = products.reduce((acc, product) => acc + (product.price * product.quantity), 0);
+        setTotalValue(totalEntrada);
+        setTotalOverall(totalEntrada + totalSaidaValue); // Saldo total
+    };
+
+    const onSubmit = async (data: FormData) => {
+        const existingProduct = products.find(p => p.name === data.name);
+
+        if (existingProduct) {
+            const newQuantity = existingProduct.quantity + data.quantity; // Aumenta a quantidade em 1
+            const newTotalPrice = existingProduct.price; // Mantém o preço original do produto
 
             try {
-                await axios.put(`http://localhost:5000/api/stock/${product.id}`, {
-                    quantidade: newTotalQuantity,
+                await axios.put(`http://localhost:5000/api/stock/${existingProduct.id}`, {
+                    quantity: newQuantity,
                     price: newTotalPrice,
                 });
+
                 const updatedProducts = products.map(p =>
-                    p.id === product.id ? { ...p, quantidade: newTotalQuantity, price: newTotalPrice } : p
+                    p.id === existingProduct.id ? { ...p, quantity: newQuantity } : p
                 );
                 setProducts(updatedProducts);
                 calculateTotals(updatedProducts);
@@ -58,132 +105,106 @@ export const StockPage = () => {
                 console.error('Erro ao atualizar produto', error);
             }
         } else {
-            // Adicionar novo produto
             try {
                 await axios.post('http://localhost:5000/api/stock', {
-                    name: newProductName,
-                    price: newProductPrice,
-                    description: newProductDescription,
-                    quantidade: newProductQuantity
+                    name: data.name,
+                    price: data.price,
+                    description: data.description,
+                    quantity: data.quantity || 1, // Novo produto com quantidade 1
                 });
+
                 const newProduct = {
-                    id: Date.now(), // Temporário, idealmente o id seria retornado pelo backend
-                    name: newProductName,
-                    quantidade: newProductQuantity,
-                    price: newProductPrice,
-                    description: newProductDescription
+                    id: Date.now(), // Temporário até o backend fornecer o ID
+                    name: data.name,
+                    price: data.price,
+                    description: data.description,
+                    quantity: data.quantity || 1
                 };
+
                 const updatedProducts = [...products, newProduct];
                 setProducts(updatedProducts);
                 calculateTotals(updatedProducts);
-                // Limpar campos após adição
-                setNewProductName('');
-                setNewProductPrice(0);
-                setNewProductDescription('');
-                setNewProductQuantity(0);
+
+                reset(); // Limpa o formulário
             } catch (error) {
                 console.error('Erro ao adicionar produto', error);
             }
         }
     };
 
-    const handleRemoveProduct = async (productId: number) => {
-        try {
-            await axios.delete(`http://localhost:5000/api/stock/${productId}`);
-            const updatedProducts = products.filter(p => p.id !== productId);
-            setProducts(updatedProducts);
-            calculateTotals(updatedProducts);
-        } catch (error) {
-            console.error('Erro ao remover produto', error);
-        }
-    };
-
     return (
-        <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Página de Estoque</h1>
+        <>
+            <MenuStock />
+            <div className="p-6">
+                <div className="flex m-auto justify-center gap-4">
+                    <div className="bg-blue-400 p-8 w-full m-auto rounded-xl">
+                        <div className="flex justify-between">
+                            <h1 className="text-xl font-semibold -mb-28 -mt-5 text-blue-800">Entradas</h1>
+                            <ArrowDownCircleIcon className="text-blue-800 size-11" />
+                        </div>
+                        <p className="text-white text-xl font-bold">{totalValue} KZ</p>
+                    </div>
 
-            {/* Formulário de Adição e Retirada de Produtos */}
-            <div className="bg-white p-4 rounded-lg shadow-lg mb-6">
-                <h2 className="text-lg font-semibold mb-4">Adicionar ou Atualizar Produto</h2>
-                <div className="mb-4">
-                    <label htmlFor="productName" className="block text-sm font-medium text-gray-700">Nome do Produto</label>
-                    <input
-                        id="productName"
-                        type="text"
-                        value={newProductName}
-                        onChange={(e) => setNewProductName(e.target.value)}
-                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    />
-                </div>
-                <div className="mb-4">
-                    <label htmlFor="productPrice" className="block text-sm font-medium text-gray-700">Preço (KZ)</label>
-                    <input
-                        id="productPrice"
-                        type="number"
-                        value={newProductPrice}
-                        onChange={(e) => setNewProductPrice(Number(e.target.value))}
-                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    />
-                </div>
-                <div className="mb-4">
-                    <label htmlFor="productDescription" className="block text-sm font-medium text-gray-700">Descrição</label>
-                    <input
-                        id="productDescription"
-                        type="text"
-                        value={newProductDescription}
-                        onChange={(e) => setNewProductDescription(e.target.value)}
-                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    />
-                </div>
-                <button
-                    type="button"
-                    onClick={handleAddOrUpdateProduct}
-                    className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-500 hover:bg-blue-600"
-                >
-                    Adicionar/Atualizar
-                </button>
-            </div>
+                    <div className="bg-red-400 p-8 w-full m-auto rounded-xl">
+                        <div className="flex justify-between">
+                            <h1 className="text-xl font-semibold -mb-28 -mt-5 text-red-800">Saídas</h1>
+                            <ArrowUpCircleIcon className="text-red-800 size-11" />
+                        </div>
+                        <p className="text-white text-xl font-bold">{totalSaidaValue} KZ</p>
+                    </div>
 
-            {/* Exibição dos Produtos em Estoque */}
-            <div className="bg-white p-4 rounded-lg shadow-lg mb-6">
-                <h2 className="text-lg font-semibold mb-4">Produtos em Estoque</h2>
-                <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-100">
-                        <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Preço (KZ)</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descrição</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                        {products.map(product => (
-                            <tr key={product.id}>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{product.name}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.price.toFixed(2)} KZ</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.description}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    <button
-                                        type="button"
-                                        onClick={() => handleRemoveProduct(product.id)}
-                                        className="bg-red-500 text-white p-1 rounded-md text-sm"
-                                    >
-                                        Remover
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+                    <div className="bg-zinc-600 p-8 w-full m-auto rounded-xl">
+                        <div className="flex justify-between">
+                            <h1 className="text-xl  font-semibold -mb-28 -mt-5 text-zinc-800">Total</h1>
+                            <DollarSignIcon className="text-zinc-800 size-11" />
+                        </div>
+                        <p className="text-white text-xl font-bold">{totalOverall} KZ</p>
+                    </div>
+                </div>
 
-            {/* Resumo do Estoque */}
-            <div className="bg-white p-4 rounded-lg shadow-lg">
-                <h2 className="text-lg font-semibold mb-4">Resumo do Estoque</h2>
-                <div className="text-sm font-medium text-gray-900">Total de Produtos Cadastrados: {productCount}</div>
-                <div className="text-sm font-medium text-gray-900">Total de Quantidade em Estoque: {totalQuantity}</div>
-                <div className="text-sm font-medium text-gray-900">Valor Total do Estoque: KZ {valueTotal.toFixed(2)}</div>
+                <div className="p-5 w-full flex m-auto justify-around gap-5 mt-10">
+                    <form onSubmit={handleSubmit(onSubmit)} className="flex shadow-md rounded-md flex-col gap-6 md:gap-8 p-4 md:p-6">
+                        <div className="block md:flex-row gap-4 md:gap-6">
+                            <h1 className="text-center text-xs">Adicionar produtos no estoque</h1>
+                            <input
+                                placeholder="Nome do Produto"
+                                type="text"
+                                {...register('name', { required: 'Nome é obrigatório' })}
+                                className="block m-auto bg-gray-200 mt-2 p-2 w-full box-border border-none rounded-md outline-none"
+                            />
+                            <input
+                                {...register("price", { required: "Preço é obrigatório" })}
+                                placeholder="Preço (KZ)"
+                                type="number"
+                                min="0"
+                                className="block m-auto bg-gray-200 mt-2 p-2 w-full box-border border-none rounded-md outline-none"
+                            />
+                                <input
+                                {...register("quantity", { required: "Quantidade é obrigatório" })}
+                                placeholder="Quantidade"
+                                type="number"
+                                min="1"
+                                className="block m-auto bg-gray-200 mt-2 p-2 w-full box-border border-none rounded-md outline-none"
+                            />
+                            <input
+                                {...register("description", { required: "Descrição é necessária" })}
+                                placeholder="Descrição"
+                                type="text"
+                                className="block m-auto bg-gray-200 mt-2 p-2 w-full box-border border-none rounded-md outline-none"
+                            />
+                            <button
+                                type="submit"
+                                className="w-full block mt-2 m-auto p-2 border-none hover:scale-105 transition-all rounded-md bg-blue-400 text-white cursor-pointer"
+                            >
+                                Adicionar
+                            </button>
+                        </div>
+                    </form>
+                    <div className="bg-white p-4 max-h-max rounded-md shadow-md">
+                        <RegisterStock products={products} onUpdate={fetchProducts} />
+                    </div>
+                </div>
             </div>
-        </div>
+        </>
     );
 };

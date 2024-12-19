@@ -3,7 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import React, { useState } from "react";
 import axios from 'axios';
 import { useForm, SubmitHandler } from 'react-hook-form';
-import { useUser } from '../../../components/context/UserContext'; // Ajuste o caminho conforme necessário
+import { useUser } from '../../../components/context/UserContext';
+import { XCircleIcon } from "lucide-react";
 
 type FormData = {
   name: string;
@@ -14,7 +15,7 @@ type FormData = {
 export const Login: React.FC = () => {
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>();
   const navigate = useNavigate();
-  const { setUserName } = useUser(); // Obtém a função para definir o nome do usuário
+  const { setUserName } = useUser(); 
   const [error, setError] = useState<string | null>(null);
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
@@ -22,14 +23,14 @@ export const Login: React.FC = () => {
       const response = await axios.post('http://localhost:5000/api/login', data);
 
       if (response.status === 200) {
-        setUserName(data.name); // Define o nome do usuário no contexto
-        navigate("/auth/begin"); // Redireciona para a página inicial ou para onde desejar
+        setUserName(data.name); 
+        navigate("/auth/begin"); 
       }
     } catch (error: any) {
       if (error.response?.status === 401) {
-        setError('Nome ou senha incorretos'); // Exibe mensagem de erro
+        setError('Nome ou senha incorretos'); 
       } else {
-        setError('Erro ao processar o login'); // Exibe mensagem de erro geral
+        setError('Erro ao processar o login'); 
       }
     }
   }
@@ -40,7 +41,7 @@ export const Login: React.FC = () => {
       style={{ backgroundImage: "url('../../src/assets/fundo.svg')" }}
     >
       <div className="flex flex-col md:flex-row justify-around m-auto w-full max-w-4xl gap-8">
-        {/* Seção de informações */}
+
         <div className="p-4 items-center w-full md:w-1/2 flex flex-col">
           <MottoFarma />
           <p className="mb-8 text-gray-400 text-center md:text-left">
@@ -53,7 +54,6 @@ export const Login: React.FC = () => {
           </Link>
         </div>
 
-        {/* Formulário de login */}
         <div className="p-5 items-center bg-gray-300 rounded-md w-full md:w-1/2">
           <div className="font-sans">
             <div className="p-[10px] items-center">
@@ -65,7 +65,7 @@ export const Login: React.FC = () => {
                   className={`block p-3 w-full mt-4 box-border border-none rounded-md outline-none ${error ? 'border-red-500' : ''}`}
                 />
                 {errors.name && (
-                  <p className="text-red-500 text-center -mb-7">{errors.name.message}</p>
+                  <h1 className="text-red-500 -mb-5 flex gap-2"><XCircleIcon className="w-4 flex items-center" />{errors.name.message}</h1>
                 )}
                 <input
                   type="password"
@@ -74,7 +74,7 @@ export const Login: React.FC = () => {
                   className={`block p-3 w-full mt-4 box-border border-none rounded-md outline-none ${error ? 'border-red-500' : ''}`}
                 />
                 {errors.senha && (
-                  <p className="text-red-500 text-center -mb-7">{errors.senha.message}</p>
+                  <p className="text-red-500 -mb-5 flex gap-2"><XCircleIcon className="w-4 flex items-center" /> {errors.senha.message}</p>
                 )}
                 <div className="flex flex-col w-full items-center justify-center gap-4 mt-2">
                   <button

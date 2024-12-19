@@ -101,6 +101,7 @@ export const ListProducts = ({ products, onUpdate }: ListProductsProps) => {
         doc.setFontSize(12);
         doc.text("Fatura", 10, 60);
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (doc as any).autoTable({
             startY: 70,
             head: [['Nome', 'Preço', 'Descrição', 'Quantidade']],

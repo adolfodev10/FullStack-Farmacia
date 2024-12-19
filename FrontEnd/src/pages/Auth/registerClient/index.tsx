@@ -56,24 +56,24 @@ export const RegisterClients = () => {
     return (
         <>
             <MenuClient />
-            <div className="p-5 w-full max-w-4xl mx-auto bg-gray-300 rounded-md" >
-                <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6 md:gap-8 p-4 md:p-6" >
+            <div className="p-5 w-full flex m-auto justify-around rounded-md mt-10" >
+                <form onSubmit={handleSubmit(onSubmit)} className="flex shadow-lg flex-col gap-6 md:gap-8 p-4 md:p-6" >
                     <div className="block md:flex-row gap-4 md:gap-6" >
                         <input
                             {...register('nameClient', { required: 'Nome é obrigatório' })}
                             type="text"
                             placeholder="Nome"
-                            className="block m-auto p-2 w-full md:w-1/2 box-border border-none rounded-md outline-none"
+                            className="block m-auto bg-gray-200 p-2 w-full box-border border-none rounded-md outline-none"
                         />
                         <input
                             {...register("telefone")}
                             type="tel"
                             placeholder="Telefone (Opcional)"
-                            className="block m-auto mt-2 p-2 w-full md:w-1/2 box-border border-none rounded-md outline-none"
+                            className="block m-auto bg-gray-200 mt-2 p-2 w-full box-border border-none rounded-md outline-none"
                         />
                         <button
                             type="submit"
-                            className="w-full block mt-2 m-auto md:w-1/2 p-2 border-none hover:scale-105 transition-all rounded-md bg-green-700 text-white cursor-pointer"
+                            className="w-full block mt-2 m-auto p-2 border-none hover:scale-105 transition-all rounded-md bg-green-700 text-white cursor-pointer"
                         >
                             Cadastrar
                         </button>

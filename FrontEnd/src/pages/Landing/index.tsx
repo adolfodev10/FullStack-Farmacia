@@ -2,6 +2,7 @@ import foto from "@/assets/people.png";
 import { About } from "../about";
 import { Link } from "react-router-dom";
 
+
 export const Landing = () => {
   return (
     <main
@@ -19,6 +20,7 @@ export const Landing = () => {
             <span className="text-green-800 font-bold">suporte</span> para
             <br />a sua farmácia.
           </h1>
+         
           <p className="text-gray-700 m-7 text-sm md:text-base">
             Aqui você vai poder gerir a sua farmácia.
             <br />
